@@ -1,25 +1,48 @@
-import { View, Text, ScrollView, Image } from 'react-native'
+import { View, Text, ScrollView, Image, Alert } from 'react-native'
 import React, { useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { images } from '../../constants'
 import FormField from '../../components/FormField'
 import CustomButton from '../../components/CustomButton'
-import { Link } from 'expo-router'
+import { Link, router } from 'expo-router'
+import { signIn } from '../../lib/appwrite'
 
 const SignIn = () => {
+    const { setUser, setIsLoggedIn } = useGlobalContext();
+
     const [form, setForm] = useState({
         email: '',
         password: ''
     })
 
-    const submit = () => { }
+    const submit = async () => {
+        const { email, password } = form;
+        if (!email || !password) {
+            return Alert.alert('Error', 'Please fill in all fields')
+        }
+
+        setIsSubmitting(true);
+
+        try {
+            const result = await signIn(email, password);
+            setUser(result);
+            setIsLoggedIn(true);
+
+            Alert.alert('Success', 'Sign in successful')
+            router.replace('/home')
+        } catch (error) {
+            Alert.alert('Error', error.message)
+        } finally {
+            setIsSubmitting(false);
+        }
+    }
 
     const [isSubmitting, setIsSubmitting] = useState(false)
     return (
         <SafeAreaView className="bg-primary h-full">
             <ScrollView>
-                <View className="w-full h-full my-6 justify-center px-4">
+                <View className="w-full min-h-[85vh] my-6 justify-center px-4">
                     <Image source={images.logo} className="w-[115px] h-[35px]" resizeMode='contain' />
 
                     <Text className="text-2xl text-white text-semibold mt-10 font-psemibold">Log In to Aora</Text>
